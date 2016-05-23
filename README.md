@@ -1,4 +1,4 @@
-# Billplz Magento Plugin
+# Billplz Magento Extension
 
 **Version: 1.0.0**
 
