@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<config>
+    <modules>
+        <DD_Billplz>
+            <active>true</active>
+            <codePool>local</codePool>
+            <depend>Mage_Payment</depend>
+        </DD_Billplz>
+    </modules>
+</config>
