@@ -8,7 +8,7 @@ class DD_Billplz_Model_Billplz
     /**
      * @var bool
      */
-    protected $_testMode = true;
+    protected $_testMode = false;
 
     /**
      * @var DD_Billplz_Helper_Data
