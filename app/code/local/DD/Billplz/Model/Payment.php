@@ -37,16 +37,6 @@ class DD_Billplz_Model_Payment extends Mage_Payment_Model_Method_Abstract
     }
 
     /**
-     * Get paypal session namespace
-     *
-     * @return Mage_Paypal_Model_Session
-     */
-    public function getSession()
-    {
-        return Mage::getSingleton('paypal/session');
-    }
-
-    /**
      * Get current quote
      *
      * @return Mage_Sales_Model_Quote
