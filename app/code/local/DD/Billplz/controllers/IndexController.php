@@ -27,7 +27,12 @@ class DD_Billplz_IndexController extends Mage_Core_Controller_Front_Action
 
         if ($bill) {
             // save Billplz bill id
+            $payment = $order->getPayment();
+            $payment->setAdditionalInformation('bill_id', $bill->id);
+            $payment->save();
+
             $order->setData('billplz_bill_id', $bill->id);
+            $order->setState(Mage_Sales_Model_Order::STATE_PENDING_PAYMENT, true, "Collection ID: {$bill->collection_id}; Bill: {$bill->id}; Status: Pending Payment; Bill URL: {$bill->url}");
             $order->save();
 
             Mage::log("Redirecting user to Billplz for bill: {$bill->id}", LOG_DEBUG, 'billplz.log');
@@ -59,10 +64,9 @@ class DD_Billplz_IndexController extends Mage_Core_Controller_Front_Action
         if ($bill) {
             /** @var Mage_Sales_Model_Order $order */
             $order = Mage::getModel('sales/order')->load($bill->id, 'billplz_bill_id');
-            // If bill is paid and order status is pending payment, move order to processing
+            // If bill is paid and order status is pending payment, create invoice for order
             if ($bill->paid && $order->getState() == Mage_Sales_Model_Order::STATE_PENDING_PAYMENT) {
-                $order->setState(Mage_Sales_Model_Order::STATE_PROCESSING, true, $this->__('Payment received from Billplz'), false);
-                $order->save();
+                $this->_createInvoice($order);
             }
         } else {
             // show error 404 if bill is not valid
@@ -71,10 +75,13 @@ class DD_Billplz_IndexController extends Mage_Core_Controller_Front_Action
 
     }
 
+    /**
+     * Redirect after payment made
+     */
     public function completeAction()
     {
-        $billplzParams = $this->getRequest()->get('billplz');
-        $bill_id = $billplzParams['id'];
+        $params = $this->getRequest()->get('billplz');
+        $bill_id = $params['id'];
 
         Mage::log("Complete: {$bill_id}", LOG_DEBUG, 'billplz.log');
 
@@ -84,11 +91,10 @@ class DD_Billplz_IndexController extends Mage_Core_Controller_Front_Action
         $bill = $billplz->getBill($bill_id);
         // check bill status
         if ($bill) {
-            if ($bill->paid) {
-                /** @var Mage_Sales_Model_Order $order */
-                $order = Mage::getModel('sales/order')->load($bill->id, 'billplz_bill_id');
-                $order->setState(Mage_Sales_Model_Order::STATE_PROCESSING, true, $this->__('Payment received from Billplz'), false);
-                $order->save();
+            /** @var Mage_Sales_Model_Order $order */
+            $order = Mage::getModel('sales/order')->load($bill->id, 'billplz_bill_id');
+            if ($bill->paid && $order->getState() == Mage_Sales_Model_Order::STATE_PENDING_PAYMENT) {
+                $this->_createInvoice($order);
 
                 $this->_redirect('checkout/onepage/success');
             } else {
@@ -114,5 +120,23 @@ class DD_Billplz_IndexController extends Mage_Core_Controller_Front_Action
     private function getBillplz()
     {
         return Mage::getModel('billplz/billplz');
+    }
+
+    private function _createInvoice(Mage_Sales_Model_Order $order)
+    {
+        if (!$order->canInvoice()) {
+            return;
+        }
+
+        /** @var Mage_Sales_Model_Order_Invoice $invoice */
+        $invoice = $order->prepareInvoice();
+        $invoice->register()->capture();
+        Mage::getModel('core/resource_transaction')
+            ->addObject($invoice)
+            ->addObject($invoice->getOrder())
+            ->save();
+
+        $order->setState(Mage_Sales_Model_Order::STATE_PROCESSING, true, $this->__('Order invoiced'), true);
+        $order->save();
     }
 }
