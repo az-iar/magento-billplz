@@ -10,3 +10,7 @@ The extension is using [Billplz](https://www.billplz.com/) API v3. It has been t
 2. Clear Magento cache
 3. Enable it in `System > Configuration > Sales > Payment Methods > Billplz`
 4. Get Billplz secret key and update in the config
+
+#### ToDo
+1. Add comment to order for payment received
+2. Use payment transaction to save bill id
