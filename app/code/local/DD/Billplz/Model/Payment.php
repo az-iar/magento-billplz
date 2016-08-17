@@ -5,11 +5,9 @@ class DD_Billplz_Model_Payment extends Mage_Payment_Model_Method_Abstract
     protected $_code = 'billplz';
 
     protected $_isGateway = true;
-    protected $_canAuthorize = true;
-    protected $_canCapture = true;
     protected $_canUseCheckout = true;
+    protected $_canCapture = true;
     protected $_canOrder = true;
-    protected $_canRefund = false;
     protected $_canReviewPayment = true;
 
     protected $_quote = null;
@@ -22,10 +20,10 @@ class DD_Billplz_Model_Payment extends Mage_Payment_Model_Method_Abstract
 
     public function initialize($paymentAction, $stateObject)
     {
-        $state = Mage_Sales_Model_Order::STATE_PENDING_PAYMENT;
+        $state = Mage_Sales_Model_Order::STATE_NEW;
 
         $stateObject->setState($state);
-        $stateObject->setStatus($state);
+        $stateObject->setStatus(Mage::getSingleton('sales/order_config')->getStateDefaultStatus($state));
         $stateObject->setIsNotified(false);
 
         return $this;
