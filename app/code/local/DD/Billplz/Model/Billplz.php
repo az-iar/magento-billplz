@@ -3,7 +3,7 @@
 class DD_Billplz_Model_Billplz
 {
     const API_BASE_URL = 'https://www.billplz.com/api/v3/';
-    const TESTING_API_BASE_URL = 'https://billplz-staging.herokuapp.com/api/v2/';
+    const STAGING_API_BASE_URL = 'https://billplz-staging.herokuapp.com/api/v3/';
 
     /**
      * @var bool
@@ -27,6 +27,7 @@ class DD_Billplz_Model_Billplz
     {
         $this->_helper = Mage::helper('billplz');
         $this->_payment = Mage::getModel('billplz/payment');
+        $this->_testMode = (bool)Mage::getStoreConfig('payment/billplz/test_mode');
     }
 
     /**
@@ -123,7 +124,7 @@ class DD_Billplz_Model_Billplz
      */
     protected function getRequestUri($endpoint)
     {
-        $baseUri = $this->_testMode ? self::TESTING_API_BASE_URL : self::API_BASE_URL;
+        $baseUri = $this->_testMode ? self::STAGING_API_BASE_URL : self::API_BASE_URL;
 
         return $baseUri . $endpoint;
     }
